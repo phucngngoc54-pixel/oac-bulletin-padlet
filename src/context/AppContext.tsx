@@ -10,6 +10,7 @@ interface AppContextType {
   todos: ToDo[];
   loading: boolean;
   error: string | null;
+  offlineToast: string | null;
   refreshData: () => Promise<void>;
 }
 
@@ -23,34 +24,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [todos, setTodos] = useState<ToDo[]>(MOCK_TODOS);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [offlineToast, setOfflineToast] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [apiUsers, apiEvents, apiNotes, apiNotifications, apiToDos] = await Promise.all([
-        fetchUsers(),
-        fetchEvents(),
-        fetchNotes(),
-        fetchNotifications(),
-        fetchToDos()
-      ]);
+      const data = await import('../api/gasApi').then(m => m.fetchAppData());
+      
+      const hasData = (data.users.length > 0) || 
+                      (data.events.length > 0) || 
+                      (data.notes.length > 0) || 
+                      (data.notifications.length > 0) || 
+                      (data.todos.length > 0);
 
-      // Use API data if available, otherwise fallback to mock data
-      setUsers(apiUsers.length > 0 ? apiUsers : MOCK_USERS);
-      setEvents(apiEvents.length > 0 ? apiEvents : MOCK_EVENTS);
-      setNotes(apiNotes.length > 0 ? apiNotes : MOCK_NOTES);
-      setNotifications(apiNotifications.length > 0 ? apiNotifications : MOCK_NOTIFICATIONS);
-      setTodos(apiToDos.length > 0 ? apiToDos : MOCK_TODOS);
+      if (!hasData) {
+        throw new Error('Empety response from GAS API');
+      }
+
+      setUsers(data.users);
+      setEvents(data.events);
+      setNotes(data.notes);
+      setNotifications(data.notifications);
+      setTodos(data.todos);
+      setOfflineToast(null);
     } catch (err) {
-      console.warn('Failed to fetch from API, falling back to mock data:', err);
-      // Fallback is already handled by initial state or we can set it explicitly here
-      setUsers(MOCK_USERS);
-      setEvents(MOCK_EVENTS);
-      setNotes(MOCK_NOTES);
-      setNotifications(MOCK_NOTIFICATIONS);
-      setTodos(MOCK_TODOS);
-      setError('Using offline placeholder data.');
+      console.warn('API fetch fail or empty, showing Mock Data:', err);
+      // Ensure we keep existing state (MOCK_DATA by default) instead of setting it to empty
+      setOfflineToast('Using offline placeholder data');
+      setError('Connection failed');
     } finally {
       setLoading(false);
     }
@@ -77,6 +79,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         todos,
         loading,
         error,
+        offlineToast,
         refreshData: loadData
       }}
     >

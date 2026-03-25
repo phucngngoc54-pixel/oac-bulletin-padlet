@@ -13,17 +13,26 @@ export async function fetchAppData(): Promise<{
   notifications: Notification[];
   todos: ToDo[];
 }> {
-  const response = await fetch(API_URL);
-  if (!response.ok) throw new Error('Failed to fetch from GAS API');
-  const raw = await response.json();
-  // Map capitalized GAS response keys to local camelCase keys
-  return {
-    users: Array.isArray(raw.Users) ? raw.Users : [],
-    events: Array.isArray(raw.Events) ? raw.Events : [],
-    notes: Array.isArray(raw.Padlet_Notes) ? raw.Padlet_Notes : [],
-    notifications: Array.isArray(raw.Notifications) ? raw.Notifications : [],
-    todos: Array.isArray(raw.ToDos) ? raw.ToDos : [],
-  };
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error(`GAS API HTTP Error: ${response.status}`);
+    const raw = await response.json();
+    
+    // Strict mapping with fallback to empty arrays and type checking
+    const data = {
+      users: Array.isArray(raw.Users) ? raw.Users : [],
+      events: Array.isArray(raw.Events) ? raw.Events : [],
+      notes: Array.isArray(raw.Padlet_Notes) ? raw.Padlet_Notes : [],
+      notifications: Array.isArray(raw.Notifications) ? raw.Notifications : [],
+      todos: Array.isArray(raw.ToDos) ? raw.ToDos : [],
+    };
+
+    // Ensure we don't return nulls inside mapped objects if mapping fails
+    return data;
+  } catch (err) {
+    console.error('fetchAppData failed:', err);
+    throw err;
+  }
 }
 
 // Convenience wrappers used by AppContext

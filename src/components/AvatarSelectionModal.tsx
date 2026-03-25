@@ -53,7 +53,7 @@ export function AvatarSelectionModal({ isOpen, currentAvatar, onSelect, onClose 
       setIsUploading(true);
       const fileData = await fileToBase64(file);
       
-      const res = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+      const res = await fetch('https://n8n.oachiring.com/webhook/oac-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

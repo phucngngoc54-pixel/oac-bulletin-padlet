@@ -7,6 +7,7 @@ import { MentionTextarea, renderDescriptionWithMentions } from './MentionTextare
 import { TiptapEditor } from './TiptapEditor';
 import { useAppContext } from '../context/AppContext';
 import { addNote as addNoteApi, addComment as addCommentApi, reactToNote as reactApi } from '../api/gasApi';
+import Skeleton, { NoteSkeleton } from './Skeleton';
 
 const CATEGORIES: { id: NoteCategory; color: string }[] = [
   { id: 'BD', color: 'bg-yellow-200 text-yellow-800' },
@@ -169,7 +170,7 @@ const ReactionButton = ({
 };
 
 export function Padlet({ searchQuery }: { searchQuery: string }) {
-  const { notes: contextNotes, users, refreshData } = useAppContext();
+  const { notes: contextNotes, users, refreshData, loading, offlineToast } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notes, setNotes] = useState<Note[]>(contextNotes);
   const [activeTag, setActiveTag] = useState<'All' | NoteCategory>('All');
@@ -268,7 +269,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
         fileName = selectedFile.name;
       }
 
-      const response = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+      const response = await fetch('https://n8n.oachiring.com/webhook/oac-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -457,6 +458,12 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
     <div className="flex-1 flex overflow-hidden bg-[#fdfbf7]">
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
+        {offlineToast && (
+          <div className="bg-amber-50 border-b border-amber-100 py-2 px-8 flex items-center gap-2 text-amber-700 text-sm animate-in fade-in slide-in-from-top duration-300 shrink-0">
+            <Volume2 className="w-4 h-4" />
+            <span>{offlineToast}</span>
+          </div>
+        )}
         <div className="px-8 py-6 border-b border-gray-200/60 bg-white/50 backdrop-blur-sm z-10 shrink-0 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
@@ -534,8 +541,11 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
         {/* Notes Wall */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6">
-            <AnimatePresence>
-              {filteredNotes.map((note) => {
+            {loading ? (
+              [1, 2, 3, 4, 5, 6].map(i => <NoteSkeleton key={i} />)
+            ) : (
+              <AnimatePresence>
+                {filteredNotes.map((note) => {
                 const creator = users.find(u => u.id === note.creatorId) || MOCK_USERS[0];
                 const catStyle = CATEGORIES.find(c => c.id === note.category)?.color;
                 const ytId = note.youtubeLink ? getYoutubeId(note.youtubeLink) : null;
@@ -665,8 +675,9 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                   </motion.div>
                 );
               })}
-            </AnimatePresence>
-            {filteredNotes.length === 0 && (
+              </AnimatePresence>
+            )}
+            {!loading && filteredNotes.length === 0 && (
               <div className="col-span-full py-12 text-center text-gray-500 font-medium">
                 No notes found matching your criteria.
               </div>

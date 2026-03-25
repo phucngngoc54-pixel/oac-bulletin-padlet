@@ -8,6 +8,7 @@ import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useAppContext } from '../context/AppContext';
 import { addEvent as addEventApi } from '../api/gasApi';
+import Skeleton, { CardSkeleton } from './Skeleton';
 
 const TAG_COLORS: Record<EventTag, string> = {
   'Team meeting': 'bg-blue-100 text-blue-700',
@@ -25,7 +26,7 @@ export function Bulletin({
   selectedEvent: Event | null, 
   setSelectedEvent: (e: Event | null) => void 
 }) {
-  const { events, users, refreshData } = useAppContext();
+  const { events, users, refreshData, loading, offlineToast } = useAppContext();
   const [localEvents, setLocalEvents] = useState<Event[]>(events);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<'All' | EventTag>('All');
@@ -315,7 +316,7 @@ export function Bulletin({
           }))
       );
 
-      const response = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+      const response = await fetch('https://n8n.oachiring.com/webhook/oac-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -451,7 +452,13 @@ export function Bulletin({
   };
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-[#f8f9fa]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#f8f9fa]">
+      {offlineToast && (
+        <div className="bg-amber-50 border-b border-amber-100 py-2 px-8 flex items-center gap-2 text-amber-700 text-sm animate-in fade-in slide-in-from-top duration-300">
+          <Clock className="w-4 h-4" />
+          <span>{offlineToast}</span>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -502,25 +509,38 @@ export function Bulletin({
 
         <div className="grid grid-cols-1 gap-8">
           <div className="space-y-8">
-            {/* Headline Event */}
-            {headlineEvent ? (
-              <EventCard event={headlineEvent} isHeadline={true} />
+            {loading ? (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map(i => <CardSkeleton key={i} />)}
+              </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500">
-                No events found matching your criteria.
-              </div>
-            )}
+              <>
+                {/* Headline Event */}
+                {headlineEvent ? (
+                  <EventCard event={headlineEvent} isHeadline={true} />
+                ) : (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500">
+                    No events found matching your criteria.
+                  </div>
+                )}
 
-            {/* Other News & Events */}
-            {otherEvents.length > 0 && (
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Internal News & Upcoming</h3>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  {otherEvents.map(event => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </div>
+                {/* Other News & Events */}
+                {!loading && otherEvents.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500">
+                    No other events found.
+                  </div>
+                )}
+                {otherEvents.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Internal News & Upcoming</h3>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                      {otherEvents.map(event => (
+                        <EventCard key={event.id} event={event} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

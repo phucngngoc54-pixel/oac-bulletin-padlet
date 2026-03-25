@@ -273,6 +273,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          uploadType: 'note',
           fileData,
           fileName,
           Title: newNoteContent.substring(0, 30) || 'New Note',

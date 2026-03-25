@@ -31,25 +31,46 @@ export function AvatarSelectionModal({ isOpen, currentAvatar, onSelect, onClose 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove data:image/png;base64, prefix for raw base64
+        const rawBase64 = base64String.split(',')[1] || '';
+        resolve(rawBase64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleCustomUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
+      const fileData = await fileToBase64(file);
       
-      const res = await fetch('/api/upload', {
+      const res = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileData,
+          fileName: file.name,
+          Title: 'Avatar Update',
+          Tag: 'User',
+          Details: `Custom avatar upload: ${file.name}`
+        }),
       });
       
       const data = await res.json();
-      if (data.success) {
-        onSelect(data.webViewLink);
+      if (res.ok) {
+        // Assuming n8n returns the new URL in webViewLink or similar
+        onSelect(data.webViewLink || data.url || '');
       } else {
-        alert('Upload failed: ' + data.error);
+        alert('Upload failed: ' + (data.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Error uploading avatar:', err);

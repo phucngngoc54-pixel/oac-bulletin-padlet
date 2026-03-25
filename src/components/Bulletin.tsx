@@ -41,7 +41,9 @@ export function Bulletin({
   const [newEventDate, setNewEventDate] = useState('');
   const [newEventTime, setNewEventTime] = useState('');
   const [newEventLocation, setNewEventLocation] = useState('');
-  const [newEventCoverImage, setNewEventCoverImage] = useState('');
+  const [newEventCoverImage, setNewEventCoverImage] = useState<string>('');
+  const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
+  const [docFiles, setDocFiles] = useState<Record<string, File>>({});
   const [showAttendeeDropdown, setShowAttendeeDropdown] = useState(false);
 
   // Image Crop State
@@ -59,6 +61,20 @@ export function Bulletin({
   const [linkUrlInput, setLinkUrlInput] = useState<{ idx: number; value: string } | null>(null);
   
   const [isUploading, setIsUploading] = useState(false);
+
+  const fileToBase64 = (fileOrBlob: File | Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(fileOrBlob);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove data:image/png;base64, prefix for raw base64
+        const rawBase64 = base64String.split(',')[1] || '';
+        resolve(rawBase64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
 
   // Smart Modal Exit
   useEffect(() => {
@@ -119,30 +135,18 @@ export function Bulletin({
     if (!file) return;
     
     try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        const newDoc: EventDocument = {
-          id: Date.now().toString(),
-          name: file.name,
-          url: data.webViewLink,
-          type: 'file'
-        };
-        setNewEventDocs(prev => [...prev, newDoc]);
-      } else {
-        alert('Upload failed: ' + data.error);
-      }
+      const localUrl = URL.createObjectURL(file);
+      const docId = Date.now().toString();
+      const newDoc: EventDocument = {
+        id: docId,
+        name: file.name,
+        url: localUrl,
+        type: 'file'
+      };
+      setNewEventDocs(prev => [...prev, newDoc]);
+      setDocFiles(prev => ({ ...prev, [docId]: file }));
     } catch (error) {
-      console.error('Error uploading:', error);
-      alert('Error uploading document');
+      console.error('Error handling doc:', error);
     } finally {
       setIsUploading(false);
     }
@@ -188,6 +192,8 @@ export function Bulletin({
     setNewEventCoverImage('');
     setImgSrc('');
     setIsCropping(false);
+    setCoverBlob(null);
+    setDocFiles({});
   };
 
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,29 +244,10 @@ export function Bulletin({
 
         canvas.toBlob(async (blob) => {
           if (!blob) return;
-          try {
-            setIsUploading(true);
-            const formData = new FormData();
-            formData.append('file', blob, 'cover.jpg');
-            
-            const response = await fetch('/api/upload', {
-              method: 'POST',
-              body: formData,
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-              setNewEventCoverImage(data.webViewLink);
-            } else {
-              alert('Failed to upload cropped image: ' + data.error);
-            }
-          } catch (error) {
-            console.error('Error uploading crop:', error);
-            alert('Error uploading cropped image');
-          } finally {
-            setIsUploading(false);
-            setIsCropping(false);
-          }
+          setCoverBlob(blob);
+          const localUrl = URL.createObjectURL(blob);
+          setNewEventCoverImage(localUrl);
+          setIsCropping(false);
         }, 'image/jpeg', 0.9);
       }
     }
@@ -311,22 +298,59 @@ export function Bulletin({
 
     // Optimistic update
     setLocalEvents(prev => [newEvent, ...prev]);
-    setIsModalOpen(false);
-    resetForm();
     
-    // POST to GAS API (include docs and cover so GAS can store them)
-    addEventApi({
-      Title: newEventTitle,
-      Tag: newEventTag,
-      Date: eventDate,
-      Time: newEventTime,
-      Location: newEventLocation || 'TBD',
-      Details: newEventDetails,
-      PublisherId: currentUser?.id || '1',
-      Attendees: newEventAttendees,
-      CoverImage: newEventCoverImage || '',
-      Documents: newEventDocs.map(d => ({ name: d.name, url: d.url, type: d.type })),
-    }).then(() => refreshData()).catch(console.warn);
+    // Call n8n Webhook for Cover Image (Main action)
+    setIsUploading(true);
+    try {
+      let coverBase64 = '';
+      if (coverBlob) {
+        coverBase64 = await fileToBase64(coverBlob);
+      }
+
+      const documentsBase64 = await Promise.all(
+        newEventDocs.filter(d => d.type === 'file' && docFiles[d.id])
+          .map(async d => ({
+            name: d.name,
+            base64: await fileToBase64(docFiles[d.id])
+          }))
+      );
+
+      const response = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Title: newEventTitle,
+          Tag: newEventTag,
+          Date: eventDate,
+          Time: newEventTime,
+          Location: newEventLocation || 'TBD',
+          Details: newEventDetails,
+          PublisherId: currentUser?.id || '1',
+          Attendees: newEventAttendees,
+          CoverImageBase64: coverBase64,
+          CoverImageName: coverBlob ? 'cover.jpg' : '', // Or derive from original file name
+          Documents: newEventDocs.map(d => ({ 
+            name: d.name, 
+            url: d.url, 
+            type: d.type,
+            base64: d.type === 'file' && docFiles[d.id] ? documentsBase64.find(doc => doc.name === d.name)?.base64 : undefined
+          })),
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send event to n8n');
+
+      setIsModalOpen(false);
+      resetForm();
+      setCoverBlob(null);
+      setDocFiles({});
+      refreshData?.();
+    } catch(err) {
+      console.error('Failed to notify n8n about event:', err);
+      alert('Failed to publish event');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const getDocIcon = (doc: EventDocument) => {

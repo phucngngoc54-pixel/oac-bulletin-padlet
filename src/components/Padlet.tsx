@@ -183,6 +183,21 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   const [newNoteCategory, setNewNoteCategory] = useState<NoteCategory>('BD');
   const [newNoteColor, setNewNoteColor] = useState('#fef08a');
   const [uploadedFile, setUploadedFile] = useState<{ url: string, type: 'image' | 'video' } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove data:image/png;base64, prefix for raw base64
+        const rawBase64 = base64String.split(',')[1] || '';
+        resolve(rawBase64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
 
   // Expanded View State
   const [expandedNote, setExpandedNote] = useState<Note | null>(null);
@@ -210,32 +225,12 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        setIsUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-          setUploadedFile({
-            url: data.webViewLink, // Link to view on Drive
-            type: file.type.startsWith('video/') ? 'video' : 'image'
-          });
-        } else {
-          console.error('Upload failed:', data.error);
-          alert('Upload failed: ' + data.error);
-        }
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        alert('Error uploading file');
-      } finally {
-        setIsUploading(false);
-      }
+      setSelectedFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setUploadedFile({
+        url: localUrl,
+        type: file.type.startsWith('video/') ? 'video' : 'image'
+      });
     }
   };
 
@@ -262,21 +257,38 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
     setNewNoteContent('');
     setUploadedFile(null);
 
-    // Call API
+    // Call n8n Webhook
     try {
-      await addNoteApi({
-        Title: newNoteContent.substring(0, 30) || 'New Note',
-        Content: newNoteContent,
-        AuthorId: currentUser?.id || '1',
-        Category: newNoteCategory,
-        IsPriority: false,
-        Color: newNoteColor,
-        ImageUrl: uploadedFile?.type === 'image' ? uploadedFile.url : undefined,
-        VideoUrl: uploadedFile?.type === 'video' ? uploadedFile.url : undefined
+      setIsUploading(true);
+      let fileData = '';
+      let fileName = '';
+      
+      if (selectedFile) {
+        fileData = await fileToBase64(selectedFile);
+        fileName = selectedFile.name;
+      }
+
+      const response = await fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileData,
+          fileName,
+          Title: newNoteContent.substring(0, 30) || 'New Note',
+          Tag: newNoteCategory,
+          Details: newNoteContent
+        })
       });
+
+      if (!response.ok) throw new Error('Failed to send to n8n');
+      
       refreshData?.();
     } catch(err) {
-      console.error('Failed to add note to GAS:', err);
+      console.error('Failed to add note to n8n:', err);
+      alert('Failed to publish note');
+    } finally {
+      setIsUploading(false);
+      setSelectedFile(null);
     }
   };
 

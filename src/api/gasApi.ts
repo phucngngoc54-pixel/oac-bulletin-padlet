@@ -1,11 +1,9 @@
-import { User, Event, Note, Notification, ToDo } from '../data/mockData';
+import { User, Event, Note, Notification, ToDo, MOCK_USERS, MOCK_EVENTS, MOCK_NOTES, MOCK_NOTIFICATIONS, MOCK_TODOS } from '../data/mockData';
 
 export const API_URL = 'https://script.google.com/macros/s/AKfycbzBhCOMLh0Vo48O_MRuxFubbg72k4fZ4StsQzEo38JYhssFek-OUY8vvIG4UoeSwk4-/exec';
 
-/**
- * Generic GET - fetches all data from the GAS endpoint.
- * GAS returns a JSON object with capitalized keys: Users, Events, Padlet_Notes, ToDos, Notifications
- */
+const handleNA = (val: any) => (val === 'N/A' || val === 'Unknown' || !val) ? undefined : val;
+
 export async function fetchAppData(): Promise<{
   users: User[];
   events: Event[];
@@ -18,20 +16,70 @@ export async function fetchAppData(): Promise<{
     if (!response.ok) throw new Error(`GAS API HTTP Error: ${response.status}`);
     const raw = await response.json();
     
-    // Strict mapping with fallback to empty arrays and type checking
-    const data = {
-      users: Array.isArray(raw.Users) ? raw.Users : [],
-      events: Array.isArray(raw.Events) ? raw.Events : [],
-      notes: Array.isArray(raw.Padlet_Notes) ? raw.Padlet_Notes : [],
-      notifications: Array.isArray(raw.Notifications) ? raw.Notifications : [],
-      todos: Array.isArray(raw.ToDos) ? raw.ToDos : [],
-    };
+    const users = Array.isArray(raw.Users) ? raw.Users.map((u: any) => ({
+      id: String(u.Id || u.id),
+      name: u.Name || u.name || 'Unknown User',
+      avatar: u.Avatar || u.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100',
+      role: u.Role || u.role || 'Staff',
+      office: u.Office || u.office || 'Hanoi HQ',
+      isOnline: !!u.IsOnline,
+      lastActive: handleNA(u.LastActive || u.lastActive),
+      contributions: Number(u.Contributions || u.contributions || 0)
+    })) : MOCK_USERS;
 
-    // Ensure we don't return nulls inside mapped objects if mapping fails
-    return data;
+    const events = Array.isArray(raw.Events) ? raw.Events.map((e: any) => ({
+      id: String(e.Id || e.id),
+      title: e.Title || e.title || 'Untitled Event',
+      date: handleNA(e.Date || e.date) || new Date().toISOString().split('T')[0],
+      time: handleNA(e.Time || e.time) || '12:00 PM',
+      location: handleNA(e.Location || e.location) || 'TBD',
+      details: handleNA(e.Details || e.details) || '',
+      coverImage: handleNA(e.CoverImage || e.coverImage || e.CoverUrl),
+      type: (e.Type || e.type || 'event').toLowerCase() as any,
+      publisherId: String(e.PublisherId || e.publisherId || '1'),
+      tag: e.Tag || e.tag || 'Team meeting',
+      attendees: Array.isArray(e.Attendees) ? e.Attendees.map(String) : [],
+      documents: Array.isArray(e.Documents) ? e.Documents : []
+    })) : MOCK_EVENTS;
+
+    const notes = Array.isArray(raw.Padlet_Notes) ? raw.Padlet_Notes.map((n: any) => ({
+      id: String(n.Id || n.id),
+      creatorId: String(n.CreatorId || n.creatorId || n.AuthorId || n.authorId || '1'),
+      content: n.Content || n.content || '',
+      category: n.Category || n.category || 'Delivery',
+      color: n.Color || n.color || '#ffffff',
+      timestamp: n.Timestamp || n.timestamp || new Date().toISOString(),
+      youtubeLink: handleNA(n.YoutubeLink || n.youtubeLink),
+      imageUrl: handleNA(n.ImageUrl || n.imageUrl),
+      videoUrl: handleNA(n.VideoUrl || n.videoUrl),
+      reactions: typeof n.Reactions === 'object' ? n.Reactions : { Like: 0, Love: 0, Haha: 0, Wow: 0, Sad: 0, Angry: 0 },
+      comments: Array.isArray(n.Comments) ? n.Comments : []
+    })) : MOCK_NOTES;
+
+    const notifications = Array.isArray(raw.Notifications) ? raw.Notifications : MOCK_NOTIFICATIONS;
+    const todos = Array.isArray(raw.ToDos) ? raw.ToDos.map((t: any) => ({
+      id: String(t.Id || t.id),
+      text: t.Text || t.text || '',
+      completed: !!t.Completed,
+      priority: !!t.Priority
+    })) : MOCK_TODOS;
+
+    return { 
+      users: users.length ? users : MOCK_USERS, 
+      events: events.length ? events : MOCK_EVENTS, 
+      notes: notes.length ? notes : MOCK_NOTES, 
+      notifications: notifications.length ? notifications : MOCK_NOTIFICATIONS, 
+      todos: todos.length ? todos : MOCK_TODOS 
+    };
   } catch (err) {
-    console.error('fetchAppData failed:', err);
-    throw err;
+    console.error('fetchAppData failed, using MOCK data:', err);
+    return {
+      users: MOCK_USERS,
+      events: MOCK_EVENTS,
+      notes: MOCK_NOTES,
+      notifications: MOCK_NOTIFICATIONS,
+      todos: MOCK_TODOS
+    };
   }
 }
 

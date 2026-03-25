@@ -137,8 +137,8 @@ export const MOCK_USERS: User[] = [
     contributions: 38
   },
   {
-    id: '3',
-    name: 'Coby',
+    id: 'peter',
+    name: 'Peter',
     role: 'Business Intelligence',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100',
     office: 'Saigon Branch',
@@ -146,7 +146,7 @@ export const MOCK_USERS: User[] = [
     contributions: 25
   },
   {
-    id: '4',
+    id: 'matthew',
     name: 'Matthew',
     role: 'Business Intelligence',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
@@ -156,7 +156,16 @@ export const MOCK_USERS: User[] = [
     contributions: 31
   },
   {
-    id: '5',
+    id: 'coby',
+    name: 'Coby',
+    role: 'Business Intelligence',
+    avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 28
+  },
+  {
+    id: 'lauren',
     name: 'Lauren',
     role: 'Buddy / Recruiter',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100',
@@ -165,7 +174,7 @@ export const MOCK_USERS: User[] = [
     contributions: 19
   },
   {
-    id: '6',
+    id: 'ellie',
     name: 'Ellie',
     role: 'Buddy / Recruiter',
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=100',
@@ -174,7 +183,7 @@ export const MOCK_USERS: User[] = [
     contributions: 15
   },
   {
-    id: '7',
+    id: 'chloe',
     name: 'Chloe',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100',
@@ -183,7 +192,7 @@ export const MOCK_USERS: User[] = [
     contributions: 22
   },
   {
-    id: '8',
+    id: 'tyler',
     name: 'Tyler',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100',
@@ -192,7 +201,7 @@ export const MOCK_USERS: User[] = [
     contributions: 12
   },
   {
-    id: '9',
+    id: 'tess',
     name: 'Tess',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100',
@@ -201,7 +210,7 @@ export const MOCK_USERS: User[] = [
     contributions: 8
   },
   {
-    id: '10',
+    id: 'lucy',
     name: 'Lucy',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=100',
@@ -210,16 +219,7 @@ export const MOCK_USERS: User[] = [
     contributions: 5
   },
   {
-    id: '11',
-    name: 'Daisy',
-    role: 'Recruiter',
-    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?auto=format&fit=crop&q=80&w=100',
-    office: 'Saigon Branch',
-    isOnline: true,
-    contributions: 3
-  },
-  {
-    id: '12',
+    id: 'cindi',
     name: 'Cindi',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=100',
@@ -228,7 +228,16 @@ export const MOCK_USERS: User[] = [
     contributions: 2
   },
   {
-    id: '13',
+    id: 'daisy',
+    name: 'Daisy',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 3
+  },
+  {
+    id: 'tracy',
     name: 'Tracy',
     role: 'Recruiter',
     avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=100',

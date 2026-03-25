@@ -62,6 +62,7 @@ export function Bulletin({
   const [linkUrlInput, setLinkUrlInput] = useState<{ idx: number; value: string } | null>(null);
   
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const fileToBase64 = (fileOrBlob: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -353,6 +354,16 @@ export function Bulletin({
     } finally {
       setIsUploading(false);
     }
+
+    // Processing Phase (The 2s delay)
+    setIsProcessing(true);
+    setTimeout(async () => {
+      try {
+        await refreshData?.();
+      } finally {
+        setIsProcessing(false);
+      }
+    }, 2000);
   };
 
   const getDocIcon = (doc: EventDocument) => {
@@ -453,7 +464,14 @@ export function Bulletin({
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#f8f9fa]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#f8f9fa] relative">
+      {isProcessing && (
+        <div className="absolute inset-0 z-[100] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center transition-all animate-in fade-in duration-300">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-xl font-bold text-gray-900">Processing...</p>
+          <p className="text-gray-500 mt-2">Syncing your event with the database</p>
+        </div>
+      )}
       {offlineToast && (
         <div className="bg-amber-50 border-b border-amber-100 py-2 px-8 flex items-center gap-2 text-amber-700 text-sm animate-in fade-in slide-in-from-top duration-300">
           <Clock className="w-4 h-4" />
@@ -623,7 +641,7 @@ export function Bulletin({
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Preparation Documents</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {selectedEvent.documents.map(doc => (
+                    {selectedEvent.documents.filter(Boolean).map(doc => (
                       <a 
                         key={doc.id} 
                         href={doc.url}
@@ -779,7 +797,7 @@ export function Bulletin({
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent min-h-[42px] flex flex-wrap gap-2 cursor-text"
                   onClick={() => setShowAttendeeDropdown(true)}
                 >
-                  {newEventAttendees.map(id => {
+                  {(newEventAttendees || []).map(id => {
                     const user = users.find(u => u.id === id);
                     if (!user) return null;
                     return (

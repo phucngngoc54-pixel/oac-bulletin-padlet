@@ -178,6 +178,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   const [replyingTo, setReplyingTo] = useState<{ noteId: string, commentId?: string } | null>(null);
   const [commentText, setCommentText] = useState('');
   const [userReactions, setUserReactions] = useState<Record<string, ReactionType>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Modal State
   const [newNoteContent, setNewNoteContent] = useState('');
@@ -282,9 +283,18 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
         })
       });
 
+      
       if (!response.ok) throw new Error('Failed to send to n8n');
       
-      refreshData?.();
+      // Processing Phase (The 2s delay)
+      setIsProcessing(true);
+      setTimeout(async () => {
+        try {
+          await refreshData?.();
+        } finally {
+          setIsProcessing(false);
+        }
+      }, 2000);
     } catch(err) {
       console.error('Failed to add note to n8n:', err);
       alert('Failed to publish note');
@@ -425,7 +435,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
           </div>
           
           {/* Replies */}
-          {comment.replies && comment.replies.map(reply => (
+          {comment.replies && (comment.replies || []).map(reply => (
             <CommentItem key={reply.id} comment={reply} noteId={noteId} isReply={true} />
           ))}
 
@@ -456,7 +466,14 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   };
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-[#fdfbf7]">
+    <div className="flex-1 flex overflow-hidden bg-[#fdfbf7] relative">
+      {isProcessing && (
+        <div className="absolute inset-0 z-[100] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center transition-all animate-in fade-in duration-300">
+          <div className="w-16 h-16 border-4 border-[#ff6b6b] border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-xl font-bold text-gray-900">Processing...</p>
+          <p className="text-gray-500 mt-2">Syncing your note with the database</p>
+        </div>
+      )}
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {offlineToast && (
@@ -637,7 +654,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                     {/* Comments Section */}
                     {(note.comments.length > 0 || replyingTo?.noteId === note.id) && (
                       <div className="mt-4 pt-4 border-t border-black/5">
-                        {displayComments.map(comment => (
+                        {(displayComments || []).map(comment => (
                           <CommentItem key={comment.id} comment={comment} noteId={note.id} />
                         ))}
                         

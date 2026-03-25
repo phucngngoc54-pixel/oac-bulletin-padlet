@@ -107,6 +107,23 @@ export default async function handler(req, res) {
     // Clean up temp file
     fs.unlinkSync(uploadedFile.filepath);
 
+    // Notify n8n Webhook (Non-blocking)
+    try {
+      fetch('https://n8n.oachiring.com/webhook-test/oac-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          fileId: driveFile.data.id,
+          webViewLink: driveFile.data.webViewLink,
+          webContentLink: driveFile.data.webContentLink,
+          fileName: uploadedFile.originalFilename || uploadedFile.newFilename
+        })
+      }).catch(err => console.error('n8n Webhook Error:', err));
+    } catch (e) {
+      console.error('Failed to trigger n8n webhook:', e);
+    }
+
     return res.status(200).json({
       success: true,
       fileId: driveFile.data.id,

@@ -443,40 +443,6 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
 
   return (
     <div className="flex-1 flex overflow-hidden bg-[#fdfbf7]">
-      {/* Sidebar Leaderboard */}
-      <div className="w-72 bg-white/50 backdrop-blur-sm border-r border-gray-200/60 p-6 overflow-y-auto shrink-0 hidden lg:block">
-        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6">Who's Sharing?</h3>
-        <div className="space-y-4">
-          {topContributors.map((user, idx) => (
-            <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative">
-              <div className="relative shrink-0">
-                <img 
-                  src={user.avatar} 
-                  alt={user.name} 
-                  className="w-12 h-12 rounded-full border-2 border-white bg-gray-50"
-                />
-                {idx === 0 && (
-                  <>
-                    <Crown className="w-5 h-5 text-yellow-500 absolute -top-2 -right-2 z-10 drop-shadow-sm rotate-12" fill="currentColor" />
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-yellow-400 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm">1</div>
-                  </>
-                )}
-                {idx === 1 && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm">2</div>
-                )}
-                {idx === 2 && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-600 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm">3</div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.contributions} Notes shared</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <div className="px-8 py-6 border-b border-gray-200/60 bg-white/50 backdrop-blur-sm z-10 shrink-0 flex flex-col gap-4">
@@ -528,6 +494,29 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
               </button>
             )}
           </div>
+
+          {/* Who's Sharing — horizontal strip */}
+          {topContributors.length > 0 && (
+            <div className="flex items-center gap-4 overflow-x-auto pb-1 scrollbar-hide">
+              <span className="text-xs font-black uppercase tracking-widest text-gray-400 shrink-0 flex items-center gap-1">
+                <Crown className="w-3.5 h-3.5 text-yellow-400" /> Who's Sharing
+              </span>
+              <div className="flex items-center gap-3">
+                {topContributors.map((u, i) => (
+                  <div key={u.id} className="flex items-center gap-2 bg-white border border-gray-100 rounded-full px-3 py-1 shadow-sm shrink-0">
+                    <div className="relative">
+                      <img src={u.avatar} alt={u.name} className="w-6 h-6 rounded-full bg-gray-100 object-cover" />
+                      {i === 0 && (
+                        <span className="absolute -top-1 -right-1 text-[9px] leading-none">👑</span>
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">{u.name.split(' ')[0]}</span>
+                    <span className="text-xs text-gray-400 font-medium">{u.contributions ?? 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notes Wall */}
@@ -868,7 +857,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                         {users.find(u => u.id === expandedNote.creatorId)?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {format(parseISO(expandedNote.timestamp), 'MMM d, yyyy h:mm a')}
+                        {safeFormat(expandedNote.timestamp, 'MMM d, yyyy h:mm a')}
                       </p>
                     </div>
                   </div>

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, Star, Calendar, CheckCircle2, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { MOCK_EVENTS, Event, MOCK_USERS } from '../data/mockData';
-import { format, isToday, parseISO } from 'date-fns';
+import { isToday, isValid } from 'date-fns';
+import { safeFormat } from '../utils/dateUtils';
+import { useAppContext } from '../context/AppContext';
 
 type Task = {
   id: string;
@@ -28,7 +30,8 @@ export function ProductivityHub({ onEventClick, searchQuery }: { onEventClick: (
     // Note: For testing purposes, if you want to see events, you might need to adjust the date in mockData or remove isToday check.
     // We will keep it as requested, but maybe just filter by attendee and search query for now to ensure they show up if they are today.
     // Actually, let's just use the mock data dates.
-    const isEventToday = isToday(parseISO(e.date));
+    const eventDate = new Date(e.date);
+    const isEventToday = isValid(eventDate) ? isToday(eventDate) : false;
     const isAttendee = e.attendees?.includes(currentUser.id);
     const matchesSearch = e.title.toLowerCase().includes(searchQuery.toLowerCase()) || e.details.toLowerCase().includes(searchQuery.toLowerCase());
     return isEventToday && isAttendee && matchesSearch;

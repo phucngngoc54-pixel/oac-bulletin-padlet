@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Calendar, MapPin, Clock, FileText, Link as LinkIcon, X, Upload, File as FileIcon, Check, Image as ImageIcon, Crop as CropIcon, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Event, EventTag, EventDocument, MOCK_USERS } from '../data/mockData';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
+import { safeFormat } from '../utils/dateUtils';
 import { MentionTextarea, renderDescriptionWithMentions } from './MentionTextarea';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -88,7 +89,11 @@ export function Bulletin({
   });
 
   // Find the latest 'Team meeting' for the headline from the filtered list
-  const teamMeetings = filteredEvents.filter(e => e.tag === 'Team meeting').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const teamMeetings = filteredEvents.filter(e => e.tag === 'Team meeting').sort((a, b) => {
+    const timeA = a.date ? new Date(a.date).getTime() : 0;
+    const timeB = b.date ? new Date(b.date).getTime() : 0;
+    return timeB - timeA;
+  });
   const headlineEvent = teamMeetings.length > 0 ? teamMeetings[0] : (filteredEvents.length > 0 ? filteredEvents[0] : null);
   
   const otherEvents = filteredEvents.filter(e => headlineEvent && e.id !== headlineEvent.id);
@@ -395,7 +400,7 @@ export function Bulletin({
           {!isHeadline && (
             <div className="flex items-center justify-between mb-2">
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${TAG_COLORS[event.tag]}`}>{event.tag}</span>
-              <span className="text-xs text-gray-500">{format(parseISO(event.date), 'MMM d, yyyy')}</span>
+              <span className="text-xs text-gray-500">{safeFormat(event.date, 'MMM d, yyyy')}</span>
             </div>
           )}
           <h3 className={`${isHeadline ? 'text-2xl mb-3' : 'text-base mb-1'} font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2`}>{event.title}</h3>
@@ -406,7 +411,7 @@ export function Bulletin({
               <span className="font-medium text-gray-700">{publisher?.name || 'Unknown'}</span>
             </div>
             {isHeadline && (
-              <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{format(parseISO(event.date), 'MMMM d, yyyy')}</div>
+              <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{safeFormat(event.date, 'MMMM d, yyyy')}</div>
             )}
             <div className="flex items-center gap-1"><Clock className={isHeadline ? 'w-4 h-4' : 'w-3 h-3'} />{event.time}</div>
             <div className="flex items-center gap-1"><MapPin className={isHeadline ? 'w-4 h-4' : 'w-3 h-3'} /><span className="truncate max-w-[100px]">{event.location}</span></div>
@@ -527,7 +532,7 @@ export function Bulletin({
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${TAG_COLORS[selectedEvent.tag]}`}>
                   {selectedEvent.tag}
                 </span>
-                <span className="text-sm text-gray-500">{format(parseISO(selectedEvent.date), 'MMMM d, yyyy')}</span>
+                <span className="text-sm text-gray-500">{safeFormat(selectedEvent.date, 'MMMM d, yyyy')}</span>
               </div>
               
               <h2 className="text-3xl font-bold text-gray-900 mb-6">{selectedEvent.title}</h2>

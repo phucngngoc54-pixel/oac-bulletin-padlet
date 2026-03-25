@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Crown, Image as ImageIcon, Link as LinkIcon, X, Heart, MessageCircle, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NoteCategory, Note, ReactionType, Comment, MOCK_USERS } from '../data/mockData';
-import { format, parseISO } from 'date-fns';
+import { NoteCategory, Note, ReactionType, Comment, User, MOCK_USERS } from '../data/mockData';
+import { safeFormat } from '../utils/dateUtils';
 import { MentionTextarea, renderDescriptionWithMentions } from './MentionTextarea';
 import { TiptapEditor } from './TiptapEditor';
 import { useAppContext } from '../context/AppContext';
@@ -399,7 +399,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
             <span className="text-gray-800">{renderDescriptionWithMentions(comment.content)}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 ml-2 text-xs text-gray-500 font-medium">
-            <span>{format(parseISO(comment.timestamp), 'h:mm a')}</span>
+            <span>{safeFormat(comment.timestamp, 'h:mm a')}</span>
             {!isReply && (
               <button 
                 onClick={() => setReplyingTo({ noteId, commentId: comment.id })}
@@ -557,7 +557,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                         <img src={creator.avatar} alt={creator.name} className="w-8 h-8 rounded-full bg-white/50" />
                         <div>
                           <p className="text-sm font-bold text-gray-900">{creator.name}</p>
-                          <p className="text-xs text-gray-600 opacity-70">{format(parseISO(note.timestamp), 'MMM d, h:mm a')}</p>
+                          <p className="text-xs text-gray-600 opacity-70">{safeFormat(note.timestamp, 'MMM d, h:mm a')}</p>
                         </div>
                       </div>
                       <span className={`text-xs font-bold px-2 py-1 rounded-lg ${catStyle}`}>

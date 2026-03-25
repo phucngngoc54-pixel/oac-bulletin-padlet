@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, CheckCircle2, Star, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { MOCK_USERS, Event } from '../data/mockData';
-import { format, isToday, parseISO } from 'date-fns';
+import { format, isToday } from 'date-fns';
+import { safeFormat } from '../utils/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import { addToDo, updateToDo, deleteToDo } from '../api/gasApi';

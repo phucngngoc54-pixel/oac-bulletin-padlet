@@ -11,7 +11,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('bulletin');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [currentUserAvatar, setCurrentUserAvatar] = useState(MOCK_USERS[0].avatar);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState(MOCK_USERS?.[0]?.avatar || '');
   const { refreshData } = useAppContext();
   
   const [sidebarWidth, setSidebarWidth] = useState(320);

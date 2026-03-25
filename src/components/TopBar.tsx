@@ -22,7 +22,7 @@ export function TopBar({ searchQuery, setSearchQuery, setActiveTab, currentUserA
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
-  const [localNotifications, setLocalNotifications] = useState(notifications);
+  const [localNotifications, setLocalNotifications] = useState(notifications || []);
   useEffect(() => {
     setLocalNotifications(notifications);
   }, [notifications]);

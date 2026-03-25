@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Calendar, MapPin, Clock, FileText, Link as LinkIcon, X, Upload, File as FileIcon, Check, Image as ImageIcon, Crop as CropIcon, MoreVertical, Pencil, Trash2 } from 'lucide-react';
-import { Event, EventTag, EventDocument } from '../data/mockData';
+import { Event, EventTag, EventDocument, MOCK_USERS } from '../data/mockData';
 import { format, parseISO } from 'date-fns';
 import { MentionTextarea, renderDescriptionWithMentions } from './MentionTextarea';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
@@ -80,9 +80,9 @@ export function Bulletin({
 
   // Filter Logic
   const filteredEvents = localEvents.filter(e => {
-    const matchesSearch = e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          e.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          users.find(u => u.id === e.publisherId)?.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (e.title || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (e.details || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (users.find(u => u.id === e.publisherId)?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTag = activeTag === 'All' || e.tag === activeTag;
     return matchesSearch && matchesTag;
   });
@@ -391,7 +391,7 @@ export function Bulletin({
             <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           </div>
         )}
-        <div className={`flex flex-col flex-1 ${isHeadline ? 'p-8' : ''}`}>
+        <div className={`flex flex-col flex-1 ${isHeadline ? 'p-8' : 'p-5'}`}>
           {!isHeadline && (
             <div className="flex items-center justify-between mb-2">
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${TAG_COLORS[event.tag]}`}>{event.tag}</span>
@@ -402,8 +402,8 @@ export function Bulletin({
           <p className={`text-gray-600 ${isHeadline ? 'mb-6 leading-relaxed' : 'text-xs line-clamp-2 mb-3'}`}>{event.details}</p>
           <div className={`flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 ${isHeadline ? '' : 'mt-auto text-[11px]'}`}>
             <div className="flex items-center gap-1.5">
-              <img src={publisher?.avatar} alt={publisher?.name} className="w-4 h-4 rounded-full bg-gray-100" />
-              <span className="font-medium text-gray-700">{publisher?.name}</span>
+              <img src={publisher?.avatar || MOCK_USERS[0].avatar} alt={publisher?.name || 'Unknown'} className="w-4 h-4 rounded-full bg-gray-100" />
+              <span className="font-medium text-gray-700">{publisher?.name || 'Unknown'}</span>
             </div>
             {isHeadline && (
               <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{format(parseISO(event.date), 'MMMM d, yyyy')}</div>
@@ -486,7 +486,7 @@ export function Bulletin({
             {otherEvents.length > 0 && (
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Internal News & Upcoming</h3>
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   {otherEvents.map(event => (
                     <EventCard key={event.id} event={event} />
                   ))}
@@ -553,13 +553,13 @@ export function Bulletin({
                 </div>
                 <div className="flex items-center gap-3">
                   <img 
-                    src={users.find(u => u.id === selectedEvent.publisherId)?.avatar} 
+                    src={users.find(u => u.id === selectedEvent.publisherId)?.avatar || MOCK_USERS[0].avatar} 
                     alt="Publisher" 
                     className="w-10 h-10 rounded-full bg-gray-200" 
                   />
                   <div>
                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Published By</p>
-                    <p className="text-sm font-bold text-gray-900">{users.find(u => u.id === selectedEvent.publisherId)?.name}</p>
+                    <p className="text-sm font-bold text-gray-900">{users.find(u => u.id === selectedEvent.publisherId)?.name || 'Unknown'}</p>
                   </div>
                 </div>
               </div>

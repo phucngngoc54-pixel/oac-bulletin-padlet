@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Crown, Image as ImageIcon, Link as LinkIcon, X, Heart, MessageCircle, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NoteCategory, Note, ReactionType, Comment } from '../data/mockData';
+import { NoteCategory, Note, ReactionType, Comment, MOCK_USERS } from '../data/mockData';
 import { format, parseISO } from 'date-fns';
 import { MentionTextarea, renderDescriptionWithMentions } from './MentionTextarea';
 import { TiptapEditor } from './TiptapEditor';
@@ -191,7 +191,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   useEffect(() => { setNotes(contextNotes); }, [contextNotes]);
 
   const topContributors = [...users].sort((a, b) => (b.contributions || 0) - (a.contributions || 0)).slice(0, 5);
-  const currentUser = users[0];
+  const currentUser = users[0] || MOCK_USERS[0];
 
   // Smart Modal Exit
   useEffect(() => {
@@ -389,7 +389,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
   });
 
   const CommentItem = ({ comment, noteId, isReply = false }: { comment: Comment, noteId: string, isReply?: boolean, key?: string | number }) => {
-    const author = users.find(u => u.id === comment.authorId);
+    const author = users.find(u => u.id === comment.authorId) || MOCK_USERS[0];
     return (
       <div className={`flex gap-2 ${isReply ? 'ml-8 mt-2' : 'mt-3'}`}>
         <img src={author?.avatar} alt={author?.name} className="w-6 h-6 rounded-full bg-white/50 shrink-0" />
@@ -535,7 +535,7 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
           <div className="columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6">
             <AnimatePresence>
               {filteredNotes.map((note) => {
-                const creator = users.find(u => u.id === note.creatorId);
+                const creator = users.find(u => u.id === note.creatorId) || MOCK_USERS[0];
                 const catStyle = CATEGORIES.find(c => c.id === note.category)?.color;
                 const ytId = note.youtubeLink ? getYoutubeId(note.youtubeLink) : null;
                 const totalReactions = getTotalReactions(note.reactions);
@@ -554,9 +554,9 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <img src={creator?.avatar} alt={creator?.name} className="w-8 h-8 rounded-full bg-white/50" />
+                        <img src={creator.avatar} alt={creator.name} className="w-8 h-8 rounded-full bg-white/50" />
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{creator?.name}</p>
+                          <p className="text-sm font-bold text-gray-900">{creator.name}</p>
                           <p className="text-xs text-gray-600 opacity-70">{format(parseISO(note.timestamp), 'MMM d, h:mm a')}</p>
                         </div>
                       </div>
@@ -859,13 +859,13 @@ export function Padlet({ searchQuery }: { searchQuery: string }) {
                 <div className="p-6 border-b border-gray-100 shrink-0">
                   <div className="flex items-center gap-3">
                     <img 
-                      src={users.find(u => u.id === expandedNote.creatorId)?.avatar} 
-                      alt="avatar" 
+                      src={users.find(u => u.id === expandedNote.creatorId)?.avatar || MOCK_USERS[0].avatar} 
+                      alt={users.find(u => u.id === expandedNote.creatorId)?.name || 'Unknown'} 
                       className="w-10 h-10 rounded-full bg-gray-100" 
                     />
                     <div>
                       <p className="text-sm font-bold text-gray-900">
-                        {users.find(u => u.id === expandedNote.creatorId)?.name}
+                        {users.find(u => u.id === expandedNote.creatorId)?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {format(parseISO(expandedNote.timestamp), 'MMM d, yyyy h:mm a')}

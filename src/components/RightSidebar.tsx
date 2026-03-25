@@ -8,10 +8,10 @@ import { addToDo, updateToDo, deleteToDo } from '../api/gasApi';
 
 export function RightSidebar({ searchQuery, onEventClick }: { searchQuery: string, onEventClick: (event: Event) => void }) {
   const { users, events, todos, refreshData } = useAppContext();
-  const currentUser = users[0] || MOCK_USERS[0];
-  const onlineUsers = users.filter(u => u.isOnline);
+  const currentUser = users?.[0] || MOCK_USERS[0];
+  const onlineUsers = (users || []).filter(u => u.isOnline);
 
-  const [localTodos, setLocalTodos] = useState(todos);
+  const [localTodos, setLocalTodos] = useState(todos || []);
   useEffect(() => {
     setLocalTodos(todos);
   }, [todos]);
@@ -20,11 +20,11 @@ export function RightSidebar({ searchQuery, onEventClick }: { searchQuery: strin
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
 
-  const todayEvents = events.filter(e => {
+  const todayEvents = (events || []).filter(e => {
     // For testing, we might not have events today, so we just filter by attendee and search
     // const isEventToday = isToday(parseISO(e.date));
     const isAttendee = e.attendees?.includes(currentUser.id);
-    const matchesSearch = e.title.toLowerCase().includes(searchQuery.toLowerCase()) || e.details.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (e.title || "").toLowerCase().includes(searchQuery.toLowerCase()) || (e.details || "").toLowerCase().includes(searchQuery.toLowerCase());
     return isAttendee && matchesSearch;
   });
 

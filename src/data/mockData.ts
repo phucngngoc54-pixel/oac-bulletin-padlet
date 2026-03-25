@@ -3,8 +3,9 @@ export type User = {
   name: string;
   avatar: string;
   role: string;
-  office: 'Hanoi' | 'Saigon';
+  office: string;
   isOnline: boolean;
+  lastActive?: string;
   contributions?: number;
 };
 
@@ -117,18 +118,124 @@ export const MOCK_TODOS: ToDo[] = [
 ];
 
 export const MOCK_USERS: User[] = [
-  { id: '1', name: 'Albus Dumbledore', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Albus', role: 'Partner', office: 'Hanoi', isOnline: true, contributions: 150 },
-  { id: '2', name: 'Minerva McGonagall', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Minerva', role: 'Director', office: 'Saigon', isOnline: true, contributions: 120 },
-  { id: '3', name: 'Severus Snape', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Severus', role: 'Senior Manager', office: 'Hanoi', isOnline: false, contributions: 80 },
-  { id: '4', name: 'Rubeus Hagrid', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rubeus', role: 'Manager', office: 'Saigon', isOnline: true, contributions: 65 },
-  { id: '5', name: 'Harry Potter', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Harry', role: 'Senior Consultant', office: 'Hanoi', isOnline: true, contributions: 40 },
-  { id: '6', name: 'Hermione Granger', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hermione', role: 'Senior Consultant', office: 'Saigon', isOnline: true, contributions: 95 },
-  { id: '7', name: 'Ron Weasley', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ron', role: 'Consultant', office: 'Hanoi', isOnline: false, contributions: 25 },
-  { id: '8', name: 'Draco Malfoy', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Draco', role: 'Consultant', office: 'Saigon', isOnline: true, contributions: 30 },
-  { id: '9', name: 'Neville Longbottom', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Neville', role: 'Analyst', office: 'Hanoi', isOnline: true, contributions: 15 },
-  { id: '10', name: 'Luna Lovegood', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna', role: 'Analyst', office: 'Saigon', isOnline: true, contributions: 22 },
-  { id: '11', name: 'Fred Weasley', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fred', role: 'Staff', office: 'Hanoi', isOnline: false, contributions: 10 },
-  { id: '12', name: 'George Weasley', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George', role: 'Staff', office: 'Saigon', isOnline: true, contributions: 12 },
+  {
+    id: '1',
+    name: 'Mr. Đức',
+    role: 'CEO',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: true,
+    contributions: 42
+  },
+  {
+    id: '2',
+    name: 'Ms. Jane',
+    role: 'Advisor',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: true,
+    contributions: 38
+  },
+  {
+    id: '3',
+    name: 'Coby',
+    role: 'Business Intelligence',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 25
+  },
+  {
+    id: '4',
+    name: 'Matthew',
+    role: 'Business Intelligence',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: true,
+    lastActive: '10m ago',
+    contributions: 31
+  },
+  {
+    id: '5',
+    name: 'Lauren',
+    role: 'Buddy / Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 19
+  },
+  {
+    id: '6',
+    name: 'Ellie',
+    role: 'Buddy / Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: false,
+    contributions: 15
+  },
+  {
+    id: '7',
+    name: 'Chloe',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 22
+  },
+  {
+    id: '8',
+    name: 'Tyler',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: false,
+    contributions: 12
+  },
+  {
+    id: '9',
+    name: 'Tess',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 8
+  },
+  {
+    id: '10',
+    name: 'Lucy',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: false,
+    contributions: 5
+  },
+  {
+    id: '11',
+    name: 'Daisy',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 3
+  },
+  {
+    id: '12',
+    name: 'Cindi',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=100',
+    office: 'Hanoi HQ',
+    isOnline: false,
+    contributions: 2
+  },
+  {
+    id: '13',
+    name: 'Tracy',
+    role: 'Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&q=80&w=100',
+    office: 'Saigon Branch',
+    isOnline: true,
+    contributions: 1
+  }
 ];
 
 export const MOCK_EVENTS: Event[] = [
